@@ -284,6 +284,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         ) return
 
         _isLoadingNearby.value = true
+
+        // Timeout after 10 seconds
+        viewModelScope.launch {
+            delay(10_000)
+            if (_isLoadingNearby.value && _nearbyStops.value.isEmpty()) {
+                _isLoadingNearby.value = false
+            }
+        }
+
         try {
             fusedLocationClient.getCurrentLocation(
                 Priority.PRIORITY_HIGH_ACCURACY,

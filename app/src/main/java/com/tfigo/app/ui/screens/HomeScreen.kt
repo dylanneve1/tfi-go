@@ -193,7 +193,7 @@ fun HomeScreen(
                         }
                     }
                 } else {
-                    items(nearbyStops, key = { it.id }) { stop ->
+                    items(nearbyStops, key = { "nearby_${it.id}" }) { stop ->
                         Card(
                             onClick = { onNearbyStopSelected(stop) },
                             colors = CardDefaults.cardColors(
@@ -259,7 +259,7 @@ fun HomeScreen(
                         )
                     }
                 }
-                items(favourites, key = { it.id }) { fav ->
+                items(favourites, key = { "fav_${it.id}" }) { fav ->
                     Card(
                         onClick = { onFavouriteSelected(fav) },
                         colors = CardDefaults.cardColors(
