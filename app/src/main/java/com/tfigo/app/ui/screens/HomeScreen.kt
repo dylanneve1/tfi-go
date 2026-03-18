@@ -4,6 +4,7 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.tfigo.app.data.model.FavouriteStop
 import com.tfigo.app.data.model.LocationResult
 import com.tfigo.app.data.model.NearbyStop
+import com.tfigo.app.ui.components.SectionHeader
 import com.tfigo.app.ui.components.StopTypeIcon
 import com.tfigo.app.ui.components.formatStopType
 import kotlinx.coroutines.launch
@@ -175,16 +177,7 @@ fun HomeScreen(
         ) {
             // Nearby stops section
             if (hasLocationPermission && (isLoadingNearby || nearbyStops.isNotEmpty())) {
-                item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
-                    ) {
-                        Icon(Icons.Default.NearMe, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("NEARBY", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
+                item { SectionHeader(icon = Icons.Default.NearMe, title = "NEARBY") }
                 if (isLoadingNearby) {
                     item {
                         Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
@@ -193,9 +186,10 @@ fun HomeScreen(
                     }
                 } else {
                     items(nearbyStops, key = { "nearby_${it.id}" }) { stop ->
-                        Card(
+                        Surface(
                             onClick = { onNearbyStopSelected(stop) },
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                            color = MaterialTheme.colorScheme.surfaceContainerLow,
+                            shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             ListItem(
@@ -210,7 +204,7 @@ fun HomeScreen(
                                     })
                                 },
                                 leadingContent = { StopTypeIcon(stop.type) },
-                                trailingContent = { Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline) },
+                                trailingContent = { Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                             )
                         }
@@ -221,20 +215,12 @@ fun HomeScreen(
 
             // Favourites section
             if (favourites.isNotEmpty()) {
-                item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
-                    ) {
-                        Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("FAVOURITES", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
+                item { SectionHeader(icon = Icons.Default.Star, title = "FAVOURITES") }
                 items(favourites, key = { "fav_${it.id}" }) { fav ->
-                    Card(
+                    Surface(
                         onClick = { onFavouriteSelected(fav) },
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                        shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         ListItem(

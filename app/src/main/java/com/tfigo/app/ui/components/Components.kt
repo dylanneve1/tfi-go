@@ -1,5 +1,6 @@
 package com.tfigo.app.ui.components
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -14,7 +15,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -22,25 +25,36 @@ import androidx.compose.ui.unit.sp
 import com.tfigo.app.data.model.Departure
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.abs
+
+// ===== Stop Type Badge (solid colored rounded square, matching HTML) =====
+
+private val BUS_COLOR = Color(0xFF00B74F)
+private val TRAIN_COLOR = Color(0xFF5C6BC0)
+private val TRAM_COLOR = Color(0xFFAB47BC)
+private val FERRY_COLOR = Color(0xFF29B6F6)
+private val COACH_COLOR = Color(0xFFFF7043)
+private val DEFAULT_COLOR = Color(0xFF78909C)
 
 @Composable
 fun StopTypeIcon(type: String) {
-    val (icon, bgColor, fgColor) = when {
-        type.contains("BUS") || type.contains("COACH") -> Triple(Icons.Default.DirectionsBus, Color(0xFFE8F0FE), Color(0xFF1967D2))
-        type.contains("TRAIN") -> Triple(Icons.Default.Train, Color(0xFFFCE8E6), Color(0xFFC5221F))
-        type.contains("TRAM") -> Triple(Icons.Default.Tram, Color(0xFFE6F4EA), Color(0xFF137333))
-        type.contains("FERRY") -> Triple(Icons.Default.DirectionsBoat, Color(0xFFE0F7FA), Color(0xFF007B83))
-        else -> Triple(Icons.Default.Place, Color(0xFFFEF7E0), Color(0xFFEA8600))
+    val (icon, bgColor) = when {
+        type.contains("BUS") -> Pair(Icons.Default.DirectionsBus, BUS_COLOR)
+        type.contains("COACH") -> Pair(Icons.Default.AirportShuttle, COACH_COLOR)
+        type.contains("TRAIN") -> Pair(Icons.Default.Train, TRAIN_COLOR)
+        type.contains("TRAM") -> Pair(Icons.Default.Tram, TRAM_COLOR)
+        type.contains("FERRY") -> Pair(Icons.Default.DirectionsBoat, FERRY_COLOR)
+        else -> Pair(Icons.Default.Place, DEFAULT_COLOR)
     }
 
     Box(
         modifier = Modifier
-            .size(40.dp)
-            .clip(CircleShape)
+            .size(44.dp)
+            .clip(RoundedCornerShape(12.dp))
             .background(bgColor),
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription = null, tint = fgColor, modifier = Modifier.size(22.dp))
+        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
     }
 }
 
@@ -56,6 +70,7 @@ fun formatStopType(type: String): String = when (type) {
         .replaceFirstChar { it.uppercase() }
 }
 
+// Hash-based route color (matches HTML routeColor function)
 fun routeColor(route: String): Color {
     val known = mapOf(
         "DART" to Color(0xFF00A651),
@@ -71,37 +86,51 @@ fun routeColor(route: String): Color {
     for (c in route) {
         hash = c.code + ((hash shl 5) - hash)
     }
-    val hue = (kotlin.math.abs(hash) % 360).toFloat()
+    val hue = (abs(hash) % 360).toFloat()
     return Color.hsl(hue, 0.55f, 0.42f)
 }
 
-fun badgeColor(mode: String): Color = when {
-    mode.contains("TRAIN") -> Color(0xFFC5221F)
-    mode.contains("TRAM") -> Color(0xFF137333)
-    mode.contains("COACH") -> Color(0xFF9334E6)
-    mode.contains("FERRY") -> Color(0xFF007B83)
-    else -> Color(0xFF1967D2)
+// ===== Pulsing Real-time Dot =====
+
+@Composable
+fun RealtimeDot(modifier: Modifier = Modifier) {
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseAlpha"
+    )
+    Box(
+        modifier = modifier
+            .size(7.dp)
+            .alpha(alpha)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary)
+    )
 }
+
+// ===== Departure Card =====
 
 @Composable
 fun DepartureCard(departure: Departure, onClick: (() -> Unit)? = null) {
-    val mode = departure.transportMode
     val color = routeColor(departure.serviceNumber)
-
     val timeStr = departure.realTimeDeparture ?: departure.scheduledDeparture
     val isLive = departure.realTimeDeparture != null
     val mins = timeStr?.let { getMinutesUntil(it) } ?: 0
-    val isDue = mins <= 1
+    val isDue = mins <= 0
     val delayMins = if (isLive && departure.scheduledDeparture != null) {
         val rtMins = departure.realTimeDeparture?.let { getMinutesUntil(it) } ?: 0
         val schedMins = getMinutesUntil(departure.scheduledDeparture)
         rtMins - schedMins
     } else 0
 
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
@@ -109,15 +138,15 @@ fun DepartureCard(departure: Departure, onClick: (() -> Unit)? = null) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(12.dp, 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Route badge
             Box(
                 modifier = Modifier
                     .defaultMinSize(minWidth = 52.dp)
-                    .height(36.dp)
+                    .height(32.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(color)
                     .padding(horizontal = 8.dp),
@@ -127,54 +156,58 @@ fun DepartureCard(departure: Departure, onClick: (() -> Unit)? = null) {
                     departure.serviceNumber,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
+                    fontSize = 14.sp,
                     maxLines = 1
                 )
             }
 
             // Destination & operator
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    departure.destination,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    departure.operator?.operatorName?.let {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (isLive) {
+                        RealtimeDot(modifier = Modifier.padding(end = 4.dp))
+                    }
+                    Text(
+                        departure.destination,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = 15.sp
+                    )
+                }
+                val subtitle = departure.serviceDisplayName ?: departure.operator?.operatorName
+                if (subtitle != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text(
-                            it,
+                            subtitle,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
+                            fontSize = 12.sp,
                             modifier = Modifier.weight(1f, fill = false)
                         )
-                    }
-                    if (isLive && delayMins > 1) {
-                        departure.operator?.operatorName?.let {
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("·", style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(modifier = Modifier.width(6.dp))
+                        if (isLive && delayMins > 1) {
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                "\u00B7 ${delayMins} min late",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                softWrap = false,
+                                fontSize = 12.sp
+                            )
                         }
-                        Text(
-                            "${delayMins} min late",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFE65100),
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 1,
-                            softWrap = false
-                        )
                     }
                 }
             }
 
-            // Time + chevron
+            // Time
             if (departure.cancelled) {
                 Text(
                     "Cancelled",
@@ -184,30 +217,32 @@ fun DepartureCard(departure: Departure, onClick: (() -> Unit)? = null) {
                 )
             } else {
                 Column(horizontalAlignment = Alignment.End) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (isLive) {
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFF00C853))
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                        }
+                    Text(
+                        if (isDue) "Due" else "$mins",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isDue) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.primary
+                    )
+                    if (!isDue && mins <= 60) {
                         Text(
-                            if (isDue) "Due" else "$mins min",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isDue) MaterialTheme.colorScheme.error
-                            else MaterialTheme.colorScheme.primary
+                            "min",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            letterSpacing = 0.3.sp
                         )
                     }
                     departure.scheduledDeparture?.let { sched ->
-                        Text(
-                            formatTime(sched),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        val schedFormatted = formatTime(sched)
+                        if (schedFormatted.isNotEmpty()) {
+                            Text(
+                                schedFormatted,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (delayMins > 1) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.outline,
+                                fontSize = 12.sp
+                            )
+                        }
                     }
                 }
             }
@@ -224,59 +259,42 @@ fun DepartureCard(departure: Departure, onClick: (() -> Unit)? = null) {
     }
 }
 
-// Alerts banner
+// ===== Alerts banner =====
+
 @Composable
-fun AlertsBanner(
-    alerts: List<String>,
-    onDismiss: () -> Unit
-) {
+fun AlertsBanner(alerts: List<String>, onDismiss: () -> Unit) {
     if (alerts.isEmpty()) return
 
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFFF3E0)
-        ),
+    Surface(
+        color = Color(0xFFFFF3E0),
+        shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                Icons.Default.Warning,
-                contentDescription = null,
-                tint = Color(0xFFE65100),
-                modifier = Modifier.size(20.dp)
-            )
+            Icon(Icons.Default.Warning, contentDescription = null, tint = Color(0xFFE65100), modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                alerts.joinToString(" • "),
+                alerts.joinToString(" \u2022 "),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFFE65100),
                 modifier = Modifier.weight(1f),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            IconButton(
-                onClick = onDismiss,
-                modifier = Modifier.size(24.dp)
-            ) {
-                Icon(
-                    Icons.Default.Close,
-                    contentDescription = "Dismiss",
-                    modifier = Modifier.size(16.dp),
-                    tint = Color(0xFFE65100)
-                )
+            IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
+                Icon(Icons.Default.Close, contentDescription = "Dismiss", modifier = Modifier.size(16.dp), tint = Color(0xFFE65100))
             }
         }
     }
 }
 
-// Facilities row
+// ===== Facilities row =====
+
 @Composable
 fun FacilitiesRow(facilities: List<String>) {
     if (facilities.isEmpty()) return
@@ -310,13 +328,7 @@ fun FacilitiesRow(facilities: List<String>) {
                 AssistChip(
                     onClick = {},
                     label = { Text(info.second, style = MaterialTheme.typography.labelSmall) },
-                    leadingIcon = {
-                        Icon(
-                            info.first,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    },
+                    leadingIcon = { Icon(info.first, contentDescription = null, modifier = Modifier.size(16.dp)) },
                     modifier = Modifier.height(28.dp)
                 )
             }
@@ -324,7 +336,8 @@ fun FacilitiesRow(facilities: List<String>) {
     }
 }
 
-// Refresh progress bar
+// ===== Refresh progress bar =====
+
 @Composable
 fun RefreshProgressBar(progress: Float) {
     @Suppress("DEPRECATION")
@@ -332,13 +345,40 @@ fun RefreshProgressBar(progress: Float) {
         progress = progress,
         modifier = Modifier
             .fillMaxWidth()
-            .height(2.dp),
+            .height(3.dp),
         color = MaterialTheme.colorScheme.primary,
-        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     )
 }
 
-private fun getMinutesUntil(isoTime: String): Int {
+// ===== Section Header =====
+
+@Composable
+fun SectionHeader(icon: ImageVector, title: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(start = 4.dp, top = 12.dp, bottom = 8.dp)
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            title,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            letterSpacing = 0.5.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+// ===== Time helpers =====
+
+fun getMinutesUntil(isoTime: String): Int {
     return try {
         val formats = listOf(
             "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
@@ -354,7 +394,7 @@ private fun getMinutesUntil(isoTime: String): Int {
             } catch (_: Exception) {}
         }
         date?.let { ((it.time - System.currentTimeMillis()) / 60000).toInt() } ?: 0
-    } catch (e: Exception) { 0 }
+    } catch (_: Exception) { 0 }
 }
 
 fun formatTime(isoTime: String): String {
@@ -375,5 +415,5 @@ fun formatTime(isoTime: String): String {
         date?.let {
             SimpleDateFormat("HH:mm", Locale.getDefault()).format(it)
         } ?: ""
-    } catch (e: Exception) { "" }
+    } catch (_: Exception) { "" }
 }
