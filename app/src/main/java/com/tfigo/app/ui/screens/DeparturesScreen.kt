@@ -101,15 +101,7 @@ fun DeparturesScreen(
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
                 },
-                content = {
-                    if (lastUpdated.isNotEmpty()) {
-                        Text(
-                            "Updated $lastUpdated",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                content = {}
             )
         },
         floatingActionButtonPosition = FabPosition.End
