@@ -49,7 +49,6 @@ fun DeparturesScreen(
     }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
-    var toolbarExpanded by remember { mutableStateOf(true) }
 
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
@@ -92,19 +91,14 @@ fun DeparturesScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            HorizontalFloatingToolbar(
-                expanded = toolbarExpanded,
-                floatingActionButton = {
-                    FloatingToolbarDefaults.VibrantFloatingActionButton(
-                        onClick = onRefresh
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
-                    }
-                },
-                content = {}
-            )
-        },
-        floatingActionButtonPosition = FabPosition.End
+            FloatingActionButton(
+                onClick = onRefresh,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ) {
+                Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+            }
+        }
     ) { padding ->
         Column(
             modifier = Modifier
