@@ -1,7 +1,10 @@
 package com.tfigo.app.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -53,22 +56,42 @@ fun formatStopType(type: String): String = when (type) {
         .replaceFirstChar { it.uppercase() }
 }
 
-@Composable
-fun DepartureCard(departure: Departure) {
-    val mode = departure.transportMode
-    val badgeColor = when {
-        mode.contains("TRAIN") -> Color(0xFFC5221F)
-        mode.contains("TRAM") -> Color(0xFF137333)
-        mode.contains("COACH") -> Color(0xFF9334E6)
-        mode.contains("FERRY") -> Color(0xFF007B83)
-        else -> Color(0xFF1967D2)
+fun routeColor(route: String): Color {
+    val known = mapOf(
+        "DART" to Color(0xFF00A651),
+        "dart" to Color(0xFF00A651),
+        "Luas Green" to Color(0xFF00A651),
+        "Luas Red" to Color(0xFFE53935),
+        "Green" to Color(0xFF00A651),
+        "Red" to Color(0xFFE53935),
+    )
+    known[route]?.let { return it }
+
+    var hash = 0
+    for (c in route) {
+        hash = c.code + ((hash shl 5) - hash)
     }
+    val hue = (kotlin.math.abs(hash) % 360).toFloat()
+    return Color.hsl(hue, 0.55f, 0.42f)
+}
+
+fun badgeColor(mode: String): Color = when {
+    mode.contains("TRAIN") -> Color(0xFFC5221F)
+    mode.contains("TRAM") -> Color(0xFF137333)
+    mode.contains("COACH") -> Color(0xFF9334E6)
+    mode.contains("FERRY") -> Color(0xFF007B83)
+    else -> Color(0xFF1967D2)
+}
+
+@Composable
+fun DepartureCard(departure: Departure, onClick: (() -> Unit)? = null) {
+    val mode = departure.transportMode
+    val color = routeColor(departure.serviceNumber)
 
     val timeStr = departure.realTimeDeparture ?: departure.scheduledDeparture
     val isLive = departure.realTimeDeparture != null
     val mins = timeStr?.let { getMinutesUntil(it) } ?: 0
     val isDue = mins <= 1
-    // Calculate delay (positive = late, negative = early)
     val delayMins = if (isLive && departure.scheduledDeparture != null) {
         val rtMins = departure.realTimeDeparture?.let { getMinutesUntil(it) } ?: 0
         val schedMins = getMinutesUntil(departure.scheduledDeparture)
@@ -79,7 +102,9 @@ fun DepartureCard(departure: Departure) {
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
     ) {
         Row(
             modifier = Modifier
@@ -94,7 +119,7 @@ fun DepartureCard(departure: Departure) {
                     .defaultMinSize(minWidth = 52.dp)
                     .height(36.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(badgeColor)
+                    .background(color)
                     .padding(horizontal = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -143,7 +168,7 @@ fun DepartureCard(departure: Departure) {
                 }
             }
 
-            // Time
+            // Time + chevron
             if (departure.cancelled) {
                 Text(
                     "Cancelled",
@@ -180,8 +205,131 @@ fun DepartureCard(departure: Departure) {
                     }
                 }
             }
+
+            if (onClick != null) {
+                Icon(
+                    Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
+}
+
+// Alerts banner
+@Composable
+fun AlertsBanner(
+    alerts: List<String>,
+    onDismiss: () -> Unit
+) {
+    if (alerts.isEmpty()) return
+
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFFFF3E0)
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.Warning,
+                contentDescription = null,
+                tint = Color(0xFFE65100),
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                alerts.joinToString(" • "),
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFFE65100),
+                modifier = Modifier.weight(1f),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Dismiss",
+                    modifier = Modifier.size(16.dp),
+                    tint = Color(0xFFE65100)
+                )
+            }
+        }
+    }
+}
+
+// Facilities row
+@Composable
+fun FacilitiesRow(facilities: List<String>) {
+    if (facilities.isEmpty()) return
+
+    val facilityInfo = mapOf(
+        "SHELTER" to Pair(Icons.Default.NightShelter, "Shelter"),
+        "TOILETS" to Pair(Icons.Default.Wc, "Toilets"),
+        "TICKET_OFFICE" to Pair(Icons.Default.ConfirmationNumber, "Tickets"),
+        "CAR_PARK" to Pair(Icons.Default.LocalParking, "Parking"),
+        "WHEELCHAIR_ACCESS" to Pair(Icons.Default.Accessible, "Accessible"),
+        "BIKE_PARK" to Pair(Icons.Default.PedalBike, "Bike Park"),
+        "WAITING_ROOM" to Pair(Icons.Default.Weekend, "Waiting Room"),
+        "WIFI" to Pair(Icons.Default.Wifi, "WiFi"),
+        "ATM" to Pair(Icons.Default.Atm, "ATM"),
+        "SHOP" to Pair(Icons.Default.ShoppingBag, "Shop"),
+        "CAFE" to Pair(Icons.Default.Coffee, "Cafe"),
+        "LIFT" to Pair(Icons.Default.Elevator, "Lift"),
+        "TAXI_RANK" to Pair(Icons.Default.LocalTaxi, "Taxi"),
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        facilities.forEach { facility ->
+            val info = facilityInfo[facility]
+            if (info != null) {
+                AssistChip(
+                    onClick = {},
+                    label = { Text(info.second, style = MaterialTheme.typography.labelSmall) },
+                    leadingIcon = {
+                        Icon(
+                            info.first,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    },
+                    modifier = Modifier.height(28.dp)
+                )
+            }
+        }
+    }
+}
+
+// Refresh progress bar
+@Composable
+fun RefreshProgressBar(progress: Float) {
+    @Suppress("DEPRECATION")
+    LinearProgressIndicator(
+        progress = progress,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(2.dp),
+        color = MaterialTheme.colorScheme.primary,
+        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+    )
 }
 
 private fun getMinutesUntil(isoTime: String): Int {
@@ -203,7 +351,7 @@ private fun getMinutesUntil(isoTime: String): Int {
     } catch (e: Exception) { 0 }
 }
 
-private fun formatTime(isoTime: String): String {
+fun formatTime(isoTime: String): String {
     return try {
         val formats = listOf(
             "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",

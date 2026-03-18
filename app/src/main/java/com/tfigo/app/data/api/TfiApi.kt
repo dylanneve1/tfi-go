@@ -1,8 +1,6 @@
 package com.tfigo.app.data.api
 
-import com.tfigo.app.data.model.DepartureRequest
-import com.tfigo.app.data.model.DepartureResponse
-import com.tfigo.app.data.model.LocationResult
+import com.tfigo.app.data.model.*
 import retrofit2.http.*
 
 interface TfiApi {
@@ -18,4 +16,34 @@ interface TfiApi {
     suspend fun getDepartures(
         @Body request: DepartureRequest
     ): DepartureResponse
+
+    @POST("situations/stops")
+    suspend fun getStopAlerts(
+        @Body request: SituationsRequest
+    ): List<SituationGroup>
+
+    @POST("stopsAssets")
+    suspend fun getStopAssets(
+        @Body request: StopsAssetsRequest
+    ): List<StopAssetGroup>
+
+    @POST("estimatedTimetable")
+    suspend fun getEstimatedTimetable(
+        @Body request: EstimatedTimetableRequest
+    ): TimetableResponse
+
+    @POST("timetable")
+    suspend fun getTimetable(
+        @Body request: TimetableRequest
+    ): TimetableResponse
+
+    @POST("visibleLookupRequest")
+    suspend fun getVisibleStops(
+        @Body request: VisibleLookupRequest
+    ): List<LocationResult>
+
+    @POST("vehicleLocation")
+    suspend fun getVehicleLocations(
+        @Body request: VehicleLocationRequest
+    ): VehicleLocationResponse
 }

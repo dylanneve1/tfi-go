@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import com.tfigo.app.ui.MainViewModel
 import com.tfigo.app.ui.screens.DeparturesScreen
 import com.tfigo.app.ui.screens.HomeScreen
+import com.tfigo.app.ui.screens.MapScreen
+import com.tfigo.app.ui.screens.TripScreen
 import com.tfigo.app.ui.theme.TFIGoTheme
 
 class MainActivity : ComponentActivity() {
@@ -27,6 +29,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        viewModel.checkLocationPermission()
 
         setContent {
             TFIGoTheme {
@@ -42,9 +45,7 @@ class MainActivity : ComponentActivity() {
 
     @Deprecated("Use OnBackPressedDispatcher")
     override fun onBackPressed() {
-        if (viewModel.currentStop.value != null) {
-            viewModel.goBack()
-        } else {
+        if (!viewModel.goBack()) {
             super.onBackPressed()
         }
     }
@@ -88,6 +89,8 @@ fun ErrorFallback(message: String, onRetry: (() -> Unit)? = null) {
 
 @Composable
 fun TFIGoApp(viewModel: MainViewModel) {
+    val currentScreen by viewModel.currentScreen.collectAsState()
+    val activeTab by viewModel.activeTab.collectAsState()
     val currentStop by viewModel.currentStop.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
@@ -98,84 +101,141 @@ fun TFIGoApp(viewModel: MainViewModel) {
     val lastUpdated by viewModel.lastUpdated.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val favourites by viewModel.favourites.collectAsState()
+    val nearbyStops by viewModel.nearbyStops.collectAsState()
+    val isLoadingNearby by viewModel.isLoadingNearby.collectAsState()
+    val hasLocationPermission by viewModel.hasLocationPermission.collectAsState()
+    val alerts by viewModel.alerts.collectAsState()
+    val facilities by viewModel.facilities.collectAsState()
+    val currentTrip by viewModel.currentTrip.collectAsState()
+    val tripData by viewModel.tripData.collectAsState()
+    val isLoadingTrip by viewModel.isLoadingTrip.collectAsState()
+    val refreshProgress by viewModel.refreshProgress.collectAsState()
+    val mapStops by viewModel.mapStops.collectAsState()
+    val isLoadingMapStops by viewModel.isLoadingMapStops.collectAsState()
+    val userLocation by viewModel.userLocation.collectAsState()
 
-    AnimatedContent(
-        targetState = currentStop != null,
-        transitionSpec = {
-            if (targetState) {
-                slideInHorizontally { it } + fadeIn() togetherWith
-                    slideOutHorizontally { -it / 3 } + fadeOut()
-            } else {
-                slideInHorizontally { -it / 3 } + fadeIn() togetherWith
-                    slideOutHorizontally { it } + fadeOut()
-            }
-        },
-        label = "navigation"
-    ) { showDepartures ->
-        var screenError by remember { mutableStateOf<String?>(null) }
+    val showBottomNav = currentScreen is MainViewModel.Screen.Home
 
-        if (screenError != null) {
-            ErrorFallback(
-                message = screenError ?: "An unexpected error occurred.",
-                onRetry = {
-                    screenError = null
-                    if (showDepartures) viewModel.refreshDepartures() else viewModel.goBack()
+    Scaffold(
+        bottomBar = {
+            if (showBottomNav) {
+                NavigationBar {
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        label = { Text("Search") },
+                        selected = activeTab == 0,
+                        onClick = { viewModel.switchTab(0) }
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Default.Map, contentDescription = null) },
+                        label = { Text("Map") },
+                        selected = activeTab == 1,
+                        onClick = { viewModel.switchTab(1) }
+                    )
                 }
-            )
-        } else if (showDepartures && currentStop != null) {
-            val stop = currentStop!!
-            DeparturesScreen(
-                stopName = stop.name,
-                stopCode = stop.shortCode,
-                stopType = stop.type,
-                departures = departures,
-                isLoading = isLoadingDepartures,
-                isFavourite = isFavourite,
-                lastUpdated = lastUpdated,
-                errorMessage = errorMessage,
-                onBack = {
-                    try { viewModel.goBack() } catch (e: Exception) {
-                        Log.e("TFIGoApp", "Error navigating back", e)
+            }
+        }
+    ) { scaffoldPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(scaffoldPadding)
+        ) {
+            AnimatedContent(
+                targetState = currentScreen,
+                transitionSpec = {
+                    when {
+                        targetState is MainViewModel.Screen.Trip ->
+                            slideInHorizontally { it } + fadeIn() togetherWith
+                                    slideOutHorizontally { -it / 3 } + fadeOut()
+                        targetState is MainViewModel.Screen.Departures && initialState is MainViewModel.Screen.Home ->
+                            slideInHorizontally { it } + fadeIn() togetherWith
+                                    slideOutHorizontally { -it / 3 } + fadeOut()
+                        targetState is MainViewModel.Screen.Home ->
+                            slideInHorizontally { -it / 3 } + fadeIn() togetherWith
+                                    slideOutHorizontally { it } + fadeOut()
+                        targetState is MainViewModel.Screen.Departures && initialState is MainViewModel.Screen.Trip ->
+                            slideInHorizontally { -it / 3 } + fadeIn() togetherWith
+                                    slideOutHorizontally { it } + fadeOut()
+                        else -> fadeIn() togetherWith fadeOut()
                     }
                 },
-                onRefresh = {
-                    try { viewModel.refreshDepartures() } catch (e: Exception) {
-                        Log.e("TFIGoApp", "Error refreshing departures", e)
-                        screenError = e.message ?: "Failed to refresh."
+                label = "navigation"
+            ) { screen ->
+                when (screen) {
+                    is MainViewModel.Screen.Home -> {
+                        if (activeTab == 0) {
+                            HomeScreen(
+                                searchQuery = searchQuery,
+                                onSearchQueryChange = { viewModel.updateSearchQuery(it) },
+                                searchResults = searchResults,
+                                isSearching = isSearching,
+                                favourites = favourites,
+                                nearbyStops = nearbyStops,
+                                isLoadingNearby = isLoadingNearby,
+                                hasLocationPermission = hasLocationPermission,
+                                onStopSelected = { viewModel.selectStop(it) },
+                                onFavouriteSelected = { viewModel.selectFavourite(it) },
+                                onNearbyStopSelected = { viewModel.selectNearbyStop(it) },
+                                onRemoveFavourite = { viewModel.removeFavourite(it) },
+                                onLocationPermissionGranted = { viewModel.onLocationPermissionGranted() },
+                                onLoadNearby = { viewModel.loadNearbyStops() }
+                            )
+                        } else {
+                            MapScreen(
+                                mapStops = mapStops,
+                                isLoadingMapStops = isLoadingMapStops,
+                                userLocation = userLocation,
+                                onLoadStops = { s, w, n, e -> viewModel.loadMapStops(s, w, n, e) },
+                                onStopSelected = { viewModel.selectMapStop(it) }
+                            )
+                        }
                     }
-                },
-                onToggleFavourite = {
-                    try { viewModel.toggleFavourite() } catch (e: Exception) {
-                        Log.e("TFIGoApp", "Error toggling favourite", e)
+                    is MainViewModel.Screen.Departures -> {
+                        val stop = currentStop
+                        if (stop != null) {
+                            DeparturesScreen(
+                                stopName = stop.name,
+                                stopCode = stop.shortCode,
+                                stopType = stop.type,
+                                departures = departures,
+                                isLoading = isLoadingDepartures,
+                                isFavourite = isFavourite,
+                                lastUpdated = lastUpdated,
+                                errorMessage = errorMessage,
+                                alerts = alerts,
+                                facilities = facilities,
+                                refreshProgress = refreshProgress,
+                                onBack = { viewModel.goBack() },
+                                onRefresh = { viewModel.refreshDepartures() },
+                                onToggleFavourite = { viewModel.toggleFavourite() },
+                                onClearError = { viewModel.clearError() },
+                                onDismissAlerts = { viewModel.dismissAlert(0) },
+                                onDepartureClicked = { viewModel.selectDeparture(it) }
+                            )
+                        }
                     }
-                },
-                onClearError = { viewModel.clearError() }
-            )
-        } else {
-            HomeScreen(
-                searchQuery = searchQuery,
-                onSearchQueryChange = { viewModel.updateSearchQuery(it) },
-                searchResults = searchResults,
-                isSearching = isSearching,
-                favourites = favourites,
-                onStopSelected = { result ->
-                    try {
-                        viewModel.selectStop(result)
-                    } catch (e: Exception) {
-                        Log.e("TFIGoApp", "Error selecting stop", e)
-                        screenError = e.message ?: "Failed to load stop."
+                    is MainViewModel.Screen.Trip -> {
+                        val trip = currentTrip
+                        if (trip != null) {
+                            TripScreen(
+                                departure = trip,
+                                tripData = tripData,
+                                isLoading = isLoadingTrip,
+                                currentStopId = currentStop?.id,
+                                onBack = { viewModel.goBack() },
+                                onStopClicked = { ref, name, type ->
+                                    viewModel.selectStop(
+                                        com.tfigo.app.data.model.LocationResult(
+                                            id = ref, name = name, type = type
+                                        )
+                                    )
+                                }
+                            )
+                        }
                     }
-                },
-                onFavouriteSelected = { fav ->
-                    try {
-                        viewModel.selectFavourite(fav)
-                    } catch (e: Exception) {
-                        Log.e("TFIGoApp", "Error selecting favourite", e)
-                        screenError = e.message ?: "Failed to load favourite."
-                    }
-                },
-                onRemoveFavourite = { viewModel.removeFavourite(it) }
-            )
+                }
+            }
         }
     }
 }

@@ -15,8 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.tfigo.app.data.model.Departure
-import com.tfigo.app.ui.components.DepartureCard
-import com.tfigo.app.ui.components.formatStopType
+import com.tfigo.app.ui.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,10 +28,15 @@ fun DeparturesScreen(
     isFavourite: Boolean,
     lastUpdated: String,
     errorMessage: String?,
+    alerts: List<String>,
+    facilities: List<String>,
+    refreshProgress: Float,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
     onToggleFavourite: () -> Unit,
-    onClearError: () -> Unit
+    onClearError: () -> Unit,
+    onDismissAlerts: () -> Unit,
+    onDepartureClicked: (Departure) -> Unit
 ) {
     var activeFilter by remember { mutableStateOf<String?>(null) }
     val services = remember(departures) {
@@ -45,7 +49,6 @@ fun DeparturesScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Show error in snackbar
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
             snackbarHostState.showSnackbar(
@@ -104,6 +107,18 @@ fun DeparturesScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            // Refresh progress bar
+            RefreshProgressBar(progress = refreshProgress)
+
+            // Facilities chips
+            FacilitiesRow(facilities = facilities)
+
+            // Alerts banner
+            AlertsBanner(
+                alerts = alerts,
+                onDismiss = onDismissAlerts
+            )
+
             // Service filter chips
             if (services.size > 1) {
                 Row(
@@ -199,7 +214,10 @@ fun DeparturesScreen(
                             filteredDepartures,
                             key = { "${it.serviceID}_${it.scheduledDeparture}_${it.destination}" }
                         ) { departure ->
-                            DepartureCard(departure = departure)
+                            DepartureCard(
+                                departure = departure,
+                                onClick = { onDepartureClicked(departure) }
+                            )
                         }
 
                         if (lastUpdated.isNotEmpty()) {
