@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.TFIGo" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">#1a6b20</item>
+        <item name="colorOnPrimary">#ffffff</item>
+        <item name="colorPrimaryContainer">#a3f49c</item>
+        <item name="colorOnPrimaryContainer">#002204</item>
+        <item name="colorSecondary">#526350</item>
+        <item name="colorOnSecondary">#ffffff</item>
+        <item name="colorSecondaryContainer">#d5e8d0</item>
+        <item name="colorOnSecondaryContainer">#101f10</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

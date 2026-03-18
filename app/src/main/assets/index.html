@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TFI Go</title>
+    <meta name="theme-color" content="#1a5e1f">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded" rel="stylesheet">
+    <style>
+        :root {
+            --md-primary: #1a6b20;
+            --md-on-primary: #ffffff;
+            --md-primary-container: #a3f49c;
+            --md-on-primary-container: #002204;
+            --md-secondary: #526350;
+            --md-on-secondary: #ffffff;
+            --md-secondary-container: #d5e8d0;
+            --md-on-secondary-container: #101f10;
+            --md-tertiary: #39656b;
+            --md-on-tertiary: #ffffff;
+            --md-tertiary-container: #bcebf2;
+            --md-on-tertiary-container: #001f23;
+            --md-surface: #fcfdf6;
+            --md-surface-dim: #ddddd7;
+            --md-surface-container: #f0f1eb;
+            --md-surface-container-low: #f6f7f1;
+            --md-surface-container-high: #eaebe5;
+            --md-surface-container-highest: #e5e5df;
+            --md-on-surface: #1a1c19;
+            --md-on-surface-variant: #434740;
+            --md-outline: #73776f;
+            --md-outline-variant: #c3c8bc;
+            --md-error: #ba1a1a;
+            --md-on-error: #ffffff;
+            --md-error-container: #ffdad6;
+            --md-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+            --md-shadow-lg: 0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+            --md-radius-sm: 8px;
+            --md-radius-md: 12px;
+            --md-radius-lg: 16px;
+            --md-radius-xl: 28px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --md-primary: #88d784;
+                --md-on-primary: #00390b;
+                --md-primary-container: #005315;
+                --md-on-primary-container: #a3f49c;
+                --md-secondary: #b9ccb5;
+                --md-on-secondary: #253424;
+                --md-secondary-container: #3b4b39;
+                --md-on-secondary-container: #d5e8d0;
+                --md-tertiary: #a1ced5;
+                --md-on-tertiary: #00363c;
+                --md-tertiary-container: #1f4d53;
+                --md-on-tertiary-container: #bcebf2;
+                --md-surface: #1a1c19;
+                --md-surface-dim: #1a1c19;
+                --md-surface-container: #1e201d;
+                --md-surface-container-low: #1a1c19;
+                --md-surface-container-high: #282a27;
+                --md-surface-container-highest: #333531;
+                --md-on-surface: #e2e3dd;
+                --md-on-surface-variant: #c3c8bc;
+                --md-outline: #8d9187;
+                --md-outline-variant: #434740;
+                --md-error: #ffb4ab;
+                --md-on-error: #690005;
+                --md-error-container: #93000a;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Google Sans', system-ui, -apple-system, sans-serif;
+            background: var(--md-surface);
+            color: var(--md-on-surface);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .material-symbols-rounded {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+        /* Top App Bar */
+        .top-bar {
+            background: var(--md-surface);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar h1 {
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--md-on-surface);
+            flex: 1;
+        }
+
+        .top-bar .logo {
+            width: 32px;
+            height: 32px;
+            background: var(--md-primary);
+            border-radius: var(--md-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--md-on-primary);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Search Bar */
+        .search-container {
+            padding: 0 16px 12px;
+        }
+
+        .search-bar {
+            background: var(--md-surface-container-high);
+            border-radius: var(--md-radius-xl);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: text;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .search-bar:focus-within {
+            background: var(--md-surface-container-highest);
+            border-color: var(--md-primary);
+        }
+
+        .search-bar input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            color: var(--md-on-surface);
+            font-family: inherit;
+            outline: none;
+        }
+
+        .search-bar input::placeholder {
+            color: var(--md-on-surface-variant);
+        }
+
+        .search-bar .icon {
+            color: var(--md-on-surface-variant);
+            font-size: 22px;
+        }
+
+        .search-bar .clear-btn {
+            background: none;
+            border: none;
+            color: var(--md-on-surface-variant);
+            cursor: pointer;
+            display: none;
+            padding: 4px;
+            border-radius: 50%;
+        }
+
+        .search-bar .clear-btn.visible {
+            display: flex;
+        }
+
+        /* Search Results */
+        .search-results {
+            padding: 0 16px;
+            display: none;
+        }
+
+        .search-results.visible {
+            display: block;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            border-radius: var(--md-radius-md);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .search-result-item:hover, .search-result-item:active {
+            background: var(--md-surface-container-high);
+        }
+
+        .result-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .result-icon.bus { background: #e8f0fe; color: #1967d2; }
+        .result-icon.train { background: #fce8e6; color: #c5221f; }
+        .result-icon.tram { background: #e6f4ea; color: #137333; }
+        .result-icon.locality { background: #fef7e0; color: #ea8600; }
+
+        @media (prefers-color-scheme: dark) {
+            .result-icon.bus { background: #1a3358; color: #8ab4f8; }
+            .result-icon.train { background: #3c1414; color: #f28b82; }
+            .result-icon.tram { background: #143520; color: #81c995; }
+            .result-icon.locality { background: #3e2a05; color: #fdd663; }
+        }
+
+        .result-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .result-name {
+            font-size: 16px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .result-type {
+            font-size: 13px;
+            color: var(--md-on-surface-variant);
+            margin-top: 2px;
+        }
+
+        /* Main Content */
+        .content {
+            flex: 1;
+            padding: 0 16px 100px;
+        }
+
+        /* Section Headers */
+        .section-header {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--md-on-surface-variant);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 16px 16px 8px;
+        }
+
+        /* Departures View */
+        .departures-view {
+            display: none;
+        }
+
+        .departures-view.visible {
+            display: block;
+        }
+
+        .stop-header {
+            background: var(--md-primary-container);
+            border-radius: var(--md-radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .stop-header h2 {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--md-on-primary-container);
+        }
+
+        .stop-header .stop-code {
+            font-size: 14px;
+            color: var(--md-on-primary-container);
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .stop-header .stop-meta {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stop-chip {
+            background: rgba(0,0,0,0.08);
+            border-radius: var(--md-radius-sm);
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--md-on-primary-container);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .stop-chip {
+                background: rgba(255,255,255,0.1);
+            }
+        }
+
+        /* Departure Card */
+        .departure-card {
+            background: var(--md-surface-container);
+            border-radius: var(--md-radius-lg);
+            padding: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+
+        .departure-card:hover {
+            background: var(--md-surface-container-high);
+        }
+
+        .departure-card:active {
+            transform: scale(0.98);
+        }
+
+        .route-badge {
+            min-width: 52px;
+            height: 36px;
+            border-radius: var(--md-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            color: #fff;
+            padding: 0 8px;
+            flex-shrink: 0;
+        }
+
+        .route-badge.bus { background: #1967d2; }
+        .route-badge.train { background: #c5221f; }
+        .route-badge.tram { background: #137333; }
+        .route-badge.coach { background: #9334e6; }
+        .route-badge.ferry { background: #007b83; }
+
+        .departure-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .departure-destination {
+            font-size: 15px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .departure-operator {
+            font-size: 13px;
+            color: var(--md-on-surface-variant);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .departure-time {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .departure-mins {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--md-primary);
+        }
+
+        .departure-mins.due {
+            color: var(--md-error);
+        }
+
+        .departure-scheduled {
+            font-size: 12px;
+            color: var(--md-on-surface-variant);
+            margin-top: 2px;
+        }
+
+        .departure-live-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00c853;
+            margin-right: 4px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .departure-cancelled {
+            color: var(--md-error);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        /* Back button */
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--md-on-surface);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            transition: background 0.15s;
+        }
+
+        .back-btn:hover {
+            background: var(--md-surface-container-high);
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
+            gap: 16px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--md-outline-variant);
+            border-top-color: var(--md-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--md-on-surface-variant);
+            font-size: 14px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            color: var(--md-outline);
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--md-on-surface-variant);
+            font-size: 14px;
+        }
+
+        /* Favourites */
+        .favourites-section {
+            margin-top: 8px;
+        }
+
+        .fav-card {
+            background: var(--md-surface-container);
+            border-radius: var(--md-radius-lg);
+            padding: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .fav-card:hover {
+            background: var(--md-surface-container-high);
+        }
+
+        .fav-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--md-primary-container);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--md-on-primary-container);
+        }
+
+        .fav-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .fav-name {
+            font-size: 15px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fav-type {
+            font-size: 13px;
+            color: var(--md-on-surface-variant);
+        }
+
+        .fav-remove {
+            background: none;
+            border: none;
+            color: var(--md-on-surface-variant);
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+        }
+
+        /* Refresh FAB */
+        .fab-refresh {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: var(--md-radius-lg);
+            background: var(--md-primary-container);
+            color: var(--md-on-primary-container);
+            border: none;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--md-shadow-lg);
+            transition: all 0.2s;
+            z-index: 50;
+        }
+
+        .fab-refresh.visible {
+            display: flex;
+        }
+
+        .fab-refresh:hover {
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+        }
+
+        .fab-refresh:active {
+            transform: scale(0.92);
+        }
+
+        .fab-refresh .material-symbols-rounded {
+            font-size: 24px;
+            transition: transform 0.3s;
+        }
+
+        .fab-refresh.spinning .material-symbols-rounded {
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Snackbar */
+        .snackbar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--md-on-surface);
+            color: var(--md-surface);
+            padding: 14px 24px;
+            border-radius: var(--md-radius-sm);
+            font-size: 14px;
+            z-index: 200;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+
+        .snackbar.visible {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Journey Planner Tab */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--md-surface-container);
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
+            z-index: 100;
+            border-top: 1px solid var(--md-outline-variant);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 20px;
+            border-radius: var(--md-radius-lg);
+            cursor: pointer;
+            transition: all 0.15s;
+            background: none;
+            border: none;
+            color: var(--md-on-surface-variant);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            min-width: 64px;
+        }
+
+        .nav-item.active {
+            color: var(--md-on-secondary-container);
+        }
+
+        .nav-item.active .nav-pill {
+            background: var(--md-secondary-container);
+        }
+
+        .nav-pill {
+            padding: 4px 20px;
+            border-radius: var(--md-radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .nav-item:hover .nav-pill {
+            background: var(--md-surface-container-highest);
+        }
+
+        /* Responsive */
+        @media (min-width: 600px) {
+            .content, .search-container {
+                max-width: 600px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .top-bar {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Service filter chips */
+        .service-filters {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 0 0 12px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .service-filters::-webkit-scrollbar { display: none; }
+
+        .filter-chip {
+            padding: 6px 14px;
+            border-radius: var(--md-radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid var(--md-outline);
+            background: transparent;
+            color: var(--md-on-surface);
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .filter-chip.active {
+            background: var(--md-secondary-container);
+            color: var(--md-on-secondary-container);
+            border-color: transparent;
+        }
+
+        /* Last updated */
+        .last-updated {
+            text-align: center;
+            font-size: 12px;
+            color: var(--md-on-surface-variant);
+            padding: 8px;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<header class="top-bar" id="topBar">
+    <button class="back-btn hidden" id="backBtn" onclick="showHome()">
+        <span class="material-symbols-rounded">arrow_back</span>
+    </button>
+    <div class="logo">Go</div>
+    <h1 id="pageTitle">TFI Go</h1>
+</header>
+
+<!-- Search -->
+<div class="search-container" id="searchContainer">
+    <div class="search-bar">
+        <span class="material-symbols-rounded icon">search</span>
+        <input type="text" id="searchInput" placeholder="Search stops, stations..." autocomplete="off">
+        <button class="clear-btn" id="clearBtn" onclick="clearSearch()">
+            <span class="material-symbols-rounded" style="font-size:20px">close</span>
+        </button>
+    </div>
+</div>
+
+<!-- Search Results -->
+<div class="search-results" id="searchResults"></div>
+
+<!-- Home View -->
+<div class="content" id="homeView">
+    <div class="favourites-section" id="favouritesSection">
+        <div class="section-header">Favourites</div>
+        <div id="favouritesList"></div>
+    </div>
+
+    <div class="empty-state" id="emptyHome">
+        <span class="material-symbols-rounded icon">directions_bus</span>
+        <h3>Find your stop</h3>
+        <p>Search for a bus stop, train station, or Luas stop to see live departures.</p>
+    </div>
+</div>
+
+<!-- Departures View -->
+<div class="departures-view" id="departuresView">
+    <div class="stop-header" id="stopHeader"></div>
+    <div class="service-filters" id="serviceFilters"></div>
+    <div id="departuresList"></div>
+    <div class="last-updated" id="lastUpdated"></div>
+</div>
+
+<!-- Refresh FAB -->
+<button class="fab-refresh" id="refreshFab" onclick="refreshDepartures()">
+    <span class="material-symbols-rounded">refresh</span>
+</button>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('departures')">
+        <div class="nav-pill">
+            <span class="material-symbols-rounded filled">departure_board</span>
+        </div>
+        Departures
+    </button>
+    <button class="nav-item" onclick="switchTab('planner')">
+        <div class="nav-pill">
+            <span class="material-symbols-rounded">route</span>
+        </div>
+        Plan
+    </button>
+    <button class="nav-item" onclick="switchTab('alerts')">
+        <div class="nav-pill">
+            <span class="material-symbols-rounded">notifications</span>
+        </div>
+        Alerts
+    </button>
+</nav>
+
+<!-- Snackbar -->
+<div class="snackbar" id="snackbar"></div>
+
+<script>
+const API_BASE = 'https://api-lts.transportforireland.ie/lts/lts/v1/public';
+const API_KEY = '630688984d38409689932a37a8641bb9';
+
+let currentStop = null;
+let allDepartures = [];
+let activeFilter = null;
+let searchTimeout = null;
+let autoRefreshTimer = null;
+
+// --- Favourites ---
+function getFavourites() {
+    try { return JSON.parse(localStorage.getItem('tfi-go-favs') || '[]'); }
+    catch { return []; }
+}
+
+function saveFavourites(favs) {
+    localStorage.setItem('tfi-go-favs', JSON.stringify(favs));
+}
+
+function addFavourite(stop) {
+    const favs = getFavourites();
+    if (!favs.find(f => f.id === stop.id)) {
+        favs.unshift(stop);
+        saveFavourites(favs);
+        showSnackbar('Added to favourites');
+    }
+    renderFavourites();
+}
+
+function removeFavourite(id) {
+    const favs = getFavourites().filter(f => f.id !== id);
+    saveFavourites(favs);
+    renderFavourites();
+    showSnackbar('Removed from favourites');
+}
+
+function renderFavourites() {
+    const favs = getFavourites();
+    const section = document.getElementById('favouritesSection');
+    const list = document.getElementById('favouritesList');
+    const empty = document.getElementById('emptyHome');
+
+    if (favs.length === 0) {
+        section.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+    }
+
+    section.classList.remove('hidden');
+    empty.classList.add('hidden');
+
+    list.innerHTML = favs.map(f => `
+        <div class="fav-card" onclick="selectStop(${JSON.stringify(f).replace(/"/g, '&quot;')})">
+            <div class="fav-icon">
+                <span class="material-symbols-rounded" style="font-size:20px">${getTypeIcon(f.type)}</span>
+            </div>
+            <div class="fav-info">
+                <div class="fav-name">${f.name}</div>
+                <div class="fav-type">${f.shortCode ? 'Stop ' + f.shortCode + ' · ' : ''}${formatType(f.type)}</div>
+            </div>
+            <button class="fav-remove" onclick="event.stopPropagation(); removeFavourite('${f.id}')">
+                <span class="material-symbols-rounded" style="font-size:18px">close</span>
+            </button>
+        </div>
+    `).join('');
+}
+
+// --- Search ---
+const searchInput = document.getElementById('searchInput');
+const clearBtn = document.getElementById('clearBtn');
+
+searchInput.addEventListener('input', (e) => {
+    const q = e.target.value.trim();
+    clearBtn.classList.toggle('visible', q.length > 0);
+
+    if (q.length < 2) {
+        document.getElementById('searchResults').classList.remove('visible');
+        return;
+    }
+
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => searchStops(q), 300);
+});
+
+function clearSearch() {
+    searchInput.value = '';
+    clearBtn.classList.remove('visible');
+    document.getElementById('searchResults').classList.remove('visible');
+}
+
+async function searchStops(query) {
+    try {
+        const res = await fetch(`${API_BASE}/locationLookup?query=${encodeURIComponent(query)}&allowedTypes=BUS_STOP,TRAIN_STATION,TRAM_STOP,TRAM_STOP_AREA,COACH_STOP,FERRY_PORT&language=en`, {
+            headers: { 'Ocp-Apim-Subscription-Key': API_KEY }
+        });
+        const data = await res.json();
+        renderSearchResults(data);
+    } catch (err) {
+        console.error('Search error:', err);
+    }
+}
+
+function renderSearchResults(results) {
+    const container = document.getElementById('searchResults');
+    if (!results || results.length === 0) {
+        container.innerHTML = `<div class="empty-state"><p>No stops found</p></div>`;
+        container.classList.add('visible');
+        return;
+    }
+
+    container.innerHTML = results.slice(0, 15).map(r => `
+        <div class="search-result-item" onclick="selectStop(${JSON.stringify(r).replace(/"/g, '&quot;')})">
+            <div class="result-icon ${getTypeClass(r.type)}">
+                <span class="material-symbols-rounded">${getTypeIcon(r.type)}</span>
+            </div>
+            <div class="result-info">
+                <div class="result-name">${r.name}</div>
+                <div class="result-type">${r.shortCode ? 'Stop ' + r.shortCode + ' · ' : ''}${formatType(r.type)}</div>
+            </div>
+            <span class="material-symbols-rounded" style="color:var(--md-outline);font-size:20px">chevron_right</span>
+        </div>
+    `).join('');
+
+    container.classList.add('visible');
+}
+
+// --- Departures ---
+async function selectStop(stop) {
+    currentStop = stop;
+    clearSearch();
+    document.getElementById('searchResults').classList.remove('visible');
+    document.getElementById('homeView').classList.add('hidden');
+    document.getElementById('searchContainer').classList.add('hidden');
+    document.getElementById('departuresView').classList.add('visible');
+    document.getElementById('backBtn').classList.remove('hidden');
+    document.getElementById('refreshFab').classList.add('visible');
+    document.getElementById('pageTitle').textContent = stop.name;
+    activeFilter = null;
+
+    // Render stop header
+    const isFav = getFavourites().find(f => f.id === stop.id);
+    document.getElementById('stopHeader').innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+                <h2>${stop.name}</h2>
+                ${stop.shortCode ? `<div class="stop-code">Stop ${stop.shortCode}</div>` : ''}
+            </div>
+            <button onclick="${isFav ? `removeFavourite('${stop.id}')` : `addFavourite(${JSON.stringify(stop).replace(/"/g, '&quot;')})`}"
+                    style="background:none;border:none;color:var(--md-on-primary-container);cursor:pointer;padding:4px">
+                <span class="material-symbols-rounded ${isFav ? 'filled' : ''}" style="font-size:24px">bookmark</span>
+            </button>
+        </div>
+        <div class="stop-meta">
+            <span class="stop-chip">${formatType(stop.type)}</span>
+        </div>
+    `;
+
+    await loadDepartures(stop);
+    startAutoRefresh();
+}
+
+async function loadDepartures(stop) {
+    const list = document.getElementById('departuresList');
+    list.innerHTML = `<div class="loading"><div class="spinner"></div><div class="loading-text">Loading departures...</div></div>`;
+
+    try {
+        const now = new Date();
+        const body = {
+            clientTimeZoneOffsetInMS: now.getTimezoneOffset() * 60 * 1000,
+            departureDate: now.toISOString(),
+            departureTime: now.toISOString(),
+            stopIds: [stop.id],
+            stopType: stop.type,
+            stopName: stop.name,
+            requestTime: now.toISOString(),
+            departureOrArrival: 'DEPARTURE',
+            refresh: false
+        };
+
+        const res = await fetch(`${API_BASE}/departures`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Ocp-Apim-Subscription-Key': API_KEY
+            },
+            body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        if (data.stopDepartures) {
+            allDepartures = data.stopDepartures;
+            renderServiceFilters();
+            renderDepartures(allDepartures);
+            document.getElementById('lastUpdated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+        } else {
+            list.innerHTML = `<div class="empty-state">
+                <span class="material-symbols-rounded icon">schedule</span>
+                <h3>No departures</h3>
+                <p>No departures found for this stop right now.</p>
+            </div>`;
+        }
+    } catch (err) {
+        console.error('Departure error:', err);
+        list.innerHTML = `<div class="empty-state">
+            <span class="material-symbols-rounded icon">error_outline</span>
+            <h3>Something went wrong</h3>
+            <p>Couldn't load departures. Try again.</p>
+        </div>`;
+    }
+}
+
+function renderServiceFilters() {
+    const services = [...new Set(allDepartures.map(d => d.serviceNumber))].sort((a, b) => {
+        const na = parseInt(a), nb = parseInt(b);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return a.localeCompare(b);
+    });
+
+    if (services.length <= 1) {
+        document.getElementById('serviceFilters').innerHTML = '';
+        return;
+    }
+
+    document.getElementById('serviceFilters').innerHTML = `
+        <button class="filter-chip active" onclick="filterService(null, this)">All</button>
+        ${services.map(s => `<button class="filter-chip" onclick="filterService('${s}', this)">${s}</button>`).join('')}
+    `;
+}
+
+function filterService(service, btn) {
+    activeFilter = service;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+
+    const filtered = service ? allDepartures.filter(d => d.serviceNumber === service) : allDepartures;
+    renderDepartures(filtered);
+}
+
+function renderDepartures(departures) {
+    const list = document.getElementById('departuresList');
+
+    if (!departures || departures.length === 0) {
+        list.innerHTML = `<div class="empty-state">
+            <span class="material-symbols-rounded icon">schedule</span>
+            <h3>No departures</h3>
+            <p>No upcoming departures found.</p>
+        </div>`;
+        return;
+    }
+
+    list.innerHTML = departures.slice(0, 20).map(d => {
+        const time = d.realTimeDeparture || d.scheduledDeparture;
+        const isLive = !!d.realTimeDeparture;
+        const mins = getMinutesUntil(time);
+        const minsDisplay = mins <= 0 ? 'Due' : mins + ' min';
+        const isDue = mins <= 1;
+        const scheduled = new Date(d.scheduledDeparture).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const mode = getTransportMode(d.transportMode);
+
+        if (d.cancelled) {
+            return `<div class="departure-card">
+                <div class="route-badge ${mode}">${d.serviceNumber}</div>
+                <div class="departure-info">
+                    <div class="departure-destination">${d.destination}</div>
+                    <div class="departure-operator">${d.operator?.operatorName || ''}</div>
+                </div>
+                <div class="departure-cancelled">Cancelled</div>
+            </div>`;
+        }
+
+        return `<div class="departure-card">
+            <div class="route-badge ${mode}">${d.serviceNumber}</div>
+            <div class="departure-info">
+                <div class="departure-destination">${d.destination}</div>
+                <div class="departure-operator">${d.operator?.operatorName || ''}</div>
+            </div>
+            <div class="departure-time">
+                <div class="departure-mins ${isDue ? 'due' : ''}">
+                    ${isLive ? '<span class="departure-live-dot"></span>' : ''}${minsDisplay}
+                </div>
+                <div class="departure-scheduled">${scheduled}</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function getMinutesUntil(isoTime) {
+    return Math.round((new Date(isoTime) - new Date()) / 60000);
+}
+
+async function refreshDepartures() {
+    if (!currentStop) return;
+    const fab = document.getElementById('refreshFab');
+    fab.classList.add('spinning');
+    await loadDepartures(currentStop);
+    fab.classList.remove('spinning');
+}
+
+function startAutoRefresh() {
+    stopAutoRefresh();
+    autoRefreshTimer = setInterval(() => {
+        if (currentStop) {
+            loadDepartures(currentStop);
+        }
+    }, 30000);
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+    }
+}
+
+// --- Navigation ---
+function showHome() {
+    stopAutoRefresh();
+    currentStop = null;
+    allDepartures = [];
+    document.getElementById('homeView').classList.remove('hidden');
+    document.getElementById('searchContainer').classList.remove('hidden');
+    document.getElementById('departuresView').classList.remove('visible');
+    document.getElementById('backBtn').classList.add('hidden');
+    document.getElementById('refreshFab').classList.remove('visible');
+    document.getElementById('pageTitle').textContent = 'TFI Go';
+    renderFavourites();
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.nav-item').forEach((n, i) => {
+        n.classList.toggle('active', (tab === 'departures' && i === 0) || (tab === 'planner' && i === 1) || (tab === 'alerts' && i === 2));
+        const icon = n.querySelector('.material-symbols-rounded');
+        icon.classList.toggle('filled', n.classList.contains('active'));
+    });
+
+    if (tab !== 'departures') {
+        showSnackbar('Coming soon!');
+    }
+}
+
+// --- Helpers ---
+function getTypeIcon(type) {
+    const icons = {
+        'BUS_STOP': 'directions_bus',
+        'COACH_STOP': 'airport_shuttle',
+        'TRAIN_STATION': 'train',
+        'TRAM_STOP': 'tram',
+        'TRAM_STOP_AREA': 'tram',
+        'FERRY_PORT': 'directions_boat',
+        'LOCALITY': 'location_on',
+        'AIR_PORT': 'flight',
+    };
+    return icons[type] || 'place';
+}
+
+function getTypeClass(type) {
+    if (type.includes('BUS') || type.includes('COACH')) return 'bus';
+    if (type.includes('TRAIN')) return 'train';
+    if (type.includes('TRAM')) return 'tram';
+    return 'locality';
+}
+
+function getTransportMode(mode) {
+    const modes = { 'BUS': 'bus', 'COACH': 'coach', 'TRAIN': 'train', 'TRAM': 'tram', 'FERRY': 'ferry' };
+    return modes[mode] || 'bus';
+}
+
+function formatType(type) {
+    const names = {
+        'BUS_STOP': 'Bus Stop',
+        'COACH_STOP': 'Coach Stop',
+        'TRAIN_STATION': 'Train Station',
+        'TRAM_STOP': 'Luas Stop',
+        'TRAM_STOP_AREA': 'Luas Stop',
+        'FERRY_PORT': 'Ferry Port',
+        'LOCALITY': 'Area',
+        'AIR_PORT': 'Airport',
+    };
+    return names[type] || type;
+}
+
+function showSnackbar(msg) {
+    const el = document.getElementById('snackbar');
+    el.textContent = msg;
+    el.classList.add('visible');
+    setTimeout(() => el.classList.remove('visible'), 3000);
+}
+
+// --- Init ---
+renderFavourites();
+</script>
+
+</body>
+</html>
